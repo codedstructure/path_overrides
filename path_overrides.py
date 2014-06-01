@@ -10,6 +10,9 @@ Ignores ones which are really the same (e.g. a symlink from one to another)
 import os
 import itertools
 
+__version__ = "0.1"
+__author__ = "Ben Bass"
+
 
 def path_diff():
     # map from entry in 'PATH' to the file listing for that path
