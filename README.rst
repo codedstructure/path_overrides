@@ -3,6 +3,15 @@ Path Overrides
 
 Detects executables which 'override' other executables in the system PATH.
 
+Install
+-------
+
+``path_overrides`` has been tested on recent OS X and Linux systems. It should work on Windows too, though I've not tested that.
+
+To install, simply run::
+
+    pip install path_overrides
+
 Use
 ---
 

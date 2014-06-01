@@ -10,7 +10,7 @@ Ignores ones which are really the same (e.g. a symlink from one to another)
 import os
 import itertools
 
-__version__ = "0.1"
+__version__ = "0.1.1"
 __author__ = "Ben Bass"
 
 
@@ -18,7 +18,7 @@ def path_diff():
     # map from entry in 'PATH' to the file listing for that path
     exes = {}
 
-    path_spec = os.environ.get('PATH', '').split(':')
+    path_spec = os.environ.get('PATH', '').split(os.pathsep)
     for path in path_spec[:]:
         try:
             # Note we could filter on only executable things here, but that
