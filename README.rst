@@ -6,11 +6,13 @@ Detects executables which 'override' other executables in the system PATH.
 Install
 -------
 
-``path_overrides`` has been tested on recent OS X and Linux systems. It should work on Windows too, though I've not tested that.
+``path_overrides`` has been tested on recent OS X and Linux systems. It should work on any POSIX system.
 
 To install, simply run::
 
-    pip install path_overrides
+    $ pip install --user path_overrides
+
+or similar.  Installing the Python package ``blessings`` is recommended to provide colourised output, but is not required.
 
 Use
 ---

@@ -10,8 +10,51 @@ Ignores ones which are really the same (e.g. a symlink from one to another)
 import os
 import itertools
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 __author__ = "Ben Bass"
+
+identity = lambda x: x
+
+
+class ExeInfo(object):
+    path = None
+    stat = None
+    is_exec = None
+    target = None
+    error = None
+
+    def __init__(self, path):
+        self.path = path
+        try:
+            self.stat = os.stat(path)
+            self.is_exec = os.access(path, os.X_OK)
+        except OSError as e:
+            self.error = str(e)
+        if os.path.islink(path):
+            self.target = os.readlink(path)
+
+    def matches(self, other):
+        if self.stat == other.stat:  # e.g. both None
+            return True
+        if self.stat is None or other.stat is None:
+            return False
+        return os.path.samestat(self.stat, other.stat)
+
+    def render(self, default_format=None, link_format=None, error_format=None):
+        default_format = default_format or identity
+        link_format = link_format or identity
+        error_format = error_format or identity
+
+        result = self.path
+        if self.target:
+            result += ' ' + link_format('({})'.format(self.target))
+        if self.error:
+            result += ' ' + error_format('({})'.format(self.error))
+
+        return default_format(result)
+
+    def __str__(self):
+        return self.render()
 
 
 def path_diff():
@@ -34,26 +77,15 @@ def path_diff():
         # sorted and combinations preserves this
         overlap = exes[left] & exes[right]
         for entry in overlap:
-            left_exe = os.path.join(left, entry)
-            right_exe = os.path.join(right, entry)
-            try:
-                # We need disk IO now, this could fail (e.g. dangling
-                # symlinks, dodgy permissions, etc)
-                if not (os.access(left_exe, os.X_OK) or
-                        os.access(right_exe, os.X_OK)):
-                    # ignore non-executable files
-                    continue
+            left_info = ExeInfo(os.path.join(left, entry))
+            right_info = ExeInfo(os.path.join(right, entry))
 
-                different = not os.path.samefile(left_exe, right_exe)
-            except OSError as e:
-                yield (left_exe, right_exe, e)
+            if not (left_info.is_exec or right_info.is_exec):
+                # ignore non-executable files
+                continue
 
-            if different:
-                if os.path.islink(left_exe):
-                    left_exe += " ({})".format(os.readlink(left_exe))
-                if os.path.islink(right_exe):
-                    right_exe += " ({})".format(os.readlink(right_exe))
-                yield (left_exe, right_exe, None)
+            if not left_info.matches(right_info):
+                yield (left_info, right_info)
 
 
 def main():
@@ -61,19 +93,14 @@ def main():
         from blessings import Terminal
     except ImportError:
         class Terminal(object):
-            def identity(self, x):
-                return x
-
-            red = green = blue = identity
+            def __getattr__(self, key):
+                return identity
 
     T = Terminal()
 
-    for left, right, err in path_diff():
-        if err is None:
-            print("{} overrides {}".format(T.green(left), T.blue(right)))
-        else:
-            print("Could not determine file differences ({}): {}, {}".format(
-                T.red(err), T.green(left), T.blue(right)))
+    for left, right in path_diff():
+        print("{} overrides {}".format(left.render(T.bright_cyan, T.cyan, T.red),
+                                       right.render(T.bright_blue, T.blue, T.red)))
 
 
 if __name__ == '__main__':
