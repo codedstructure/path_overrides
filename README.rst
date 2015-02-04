@@ -58,4 +58,42 @@ This is a run of ``path_overrides`` on an OS X machine, currently working in a v
     /usr/local/bin/fc-query (../Cellar/fontconfig/2.11.1/bin/fc-query) overrides /opt/X11/bin/fc-query
     /usr/local/bin/fc-pattern (../Cellar/fontconfig/2.11.1/bin/fc-pattern) overrides /opt/X11/bin/fc-pattern
 
-@codedstructure 2014
+Options
+-------
+
+In most cases ``path_overrides`` does not require any options to be provided, but some exist for occasions such as checking the PATH within an alternate root (e.g. when building an alternate chroot filesystem).
+
+In this case, an explicit PATH can be provided as an argument to the `--path` argument. An alternate to the default PATH separator (e.g. ':' on POSIX systems, ';' on Windows) can also be provided via the `--path-sep` argument. Finally, a `--root-dir` path can be specified which all PATH elements will be considered to be local to. Note that the `--root-dir` value will not be included in the output which ``path_overrides`` gives; it is assumed that the calling program / user is aware of this and the more concise information is preferable.
+
+The following example shows the use of all these options::
+
+    $ mkdir -p ~/bin ~/sbin
+    $ touch ~/bin/{x,y} ~/sbin/{x,y}
+    $ chmod +x ~/bin/{x,y} ~/sbin/{x,y}
+    $ path_overrides --path-sep=' ' --path='/bin /sbin' --root-dir='~'
+    /bin/y overrides /sbin/y
+    /bin/x overrides /sbin/x
+
+
+Help
+----
+
+Help is obtained with the `--help` argument; the version of ``path_overrides`` is reported with `--version`::
+
+
+    Usage: path_overrides [-h] [--version] [-p PATH] [--path-sep PATH_SEP]
+                          [--root-dir ROOT_DIR]
+
+    Display executables in the PATH which override other (different) programs
+    later in the PATH
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      --version             show program's version number and exit
+      -p PATH, --path PATH  provide custom PATH value directly rather than from
+                            environment
+      --path-sep PATH_SEP   path separator; defaults to system default
+      --root-dir ROOT_DIR   assumed root of PATH if given
+
+
+@codedstructure 2014-2015
